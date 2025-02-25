@@ -15,6 +15,19 @@ const createUsers = async(uuid, username, password) => {
 }
 
 
+const fetchAllUsers = async() => {
+  try {
+    const { rows: retrievedUsers } = await client.query(`
+      SELECT * FROM users;
+    `);
+
+    return retrievedUsers;
+  } catch(err) {
+    console.log(err);
+  }
+}
+
 module.exports = {
-  createUsers
+  createUsers,
+  fetchAllUsers
 }

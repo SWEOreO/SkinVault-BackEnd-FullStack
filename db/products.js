@@ -12,6 +12,34 @@ const createProducts = async(name, type, image, ingredients) => {
 }
 
 
+const fetchAllProducts = async() => {
+  try {
+    const { rows: retrievedProducts } = await client.query(`
+      SELECT * FROM products;
+    `);
+
+    return retrievedProducts;
+  } catch(err) {
+    console.log(err);
+  }
+}
+
+const fetchProductDetails = async(product_id) => {
+  try {
+    const { rows: retrievedProductDetails } = await client.query(`
+      SELECT * FROM products WHERE id = ${product_id};
+    `);
+
+    return retrievedProductDetails;
+  } catch(err) {
+    console.log(err);
+  }
+}
+
+
+
 module.exports = {
-  createProducts
+  createProducts,
+  fetchAllProducts,
+  fetchProductDetails
 }
