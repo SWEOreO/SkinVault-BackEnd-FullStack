@@ -1,12 +1,17 @@
-const{fetchAllUsers} = require('./db/users.js');
+const {authenticateUser, logInWithToken, registerUser} = require('./db/users.js');
 const{fetchAllProducts, fetchProductDetails} = require('./db/products.js');
 const{fetchAllReviews, createReviews, deleteReview, getMyReviews} = require('./db/reviews.js');
 
 const express = require('express');
 const app = express();
 
-
 app.use(express.json());
+app.use(express.static('dist'));
+
+const bcrypt = require('bcrypt');
+const client = require('./db/client.js');
+client.connect();
+require('dotenv').config();
 
 // // test
 // app.get('/', (req, res, next) => {
@@ -14,29 +19,35 @@ app.use(express.json());
 // });
 
 // register
-app.post('/api/auth.register',async(req, res, next) => {
-  try{
-
-  } catch(err) {
+app.post('/api/auth/register',async(req, res, next) => {
+  const{username, password} = req.body;
+try{
+  await registerUser();
+} catch(err) {
     next(err);}
 });
 
 
 // login
-app.post('/api/auth.login',async(req, res, next) => {
+app.post('/api/auth/login',async(req, res, next) => {
+  const{username, password} = req.body;
   try{
-
+    const token = await authenticateUser(username, password);
+    res.send({token: token});
   } catch(err) {
-    next(err);}
+    res.send({message: 'Bad Credentials'});
+  }
 });
 
 
 // user info
-app.get('/api/auth.me',async(req, res, next) => {
+app.get('/api/auth/me',async(req, res, next) => {
   try{
-
+    const user = await logInWithToken(req.header.authenticateUser);
+    res.send({user})
   } catch(err) {
-    next(err);}
+    res.send({message: err.message});
+  }
 });
 
 
