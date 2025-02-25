@@ -39,6 +39,7 @@ const createTables = async() => {
 
       CREATE TABLE reviews(
         id SERIAL PRIMARY KEY,
+        score FLOAT NOT NULL,
         text TEXT,
         user_id UUID REFERENCES users(id) NOT NULL,
         product_id INTEGER REFERENCES products(id) NOT NULL
@@ -93,13 +94,11 @@ const syncAndSeed = async() => {
 
   // reviews
   console.log(`CREATING REVIEWS`)
-  console.log(userJane);
-  await createReviews('Great Product!!',userJane.id,2);
-  await createReviews( 'Love it sooooo much',userSunny.id, 5);
-  await createReviews('Bought it last week, fast shipping!',userMac.id,1);
-  await createReviews( 'Like the smell!',userZoe.id,1);
-  await createReviews( 'Strongly Recommended!!',userPav.id,7);
-  
+  await createReviews(5,'Great Product!!',userJane.id,2);
+  await createReviews( 5,'Love it sooooo much',userSunny.id, 5);
+  await createReviews(4.5,'Bought it last week, fast shipping!',userMac.id,1);
+  await createReviews(4.5,'Like the smell!',userZoe.id,1);
+  await createReviews(5,'Strongly Recommended!!',userPav.id,7);
   console.log(`REVIEWS CREATED`);
 
 
