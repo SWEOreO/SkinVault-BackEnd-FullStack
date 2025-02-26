@@ -32,7 +32,7 @@ const registerUser = async(username, password) => {
     } else {
     const bcryptedPassword = await bcrypt.password
     const newUser = await createUsers(uuidv4(), username, bcryptedPassword);
-    const newUser = await createUsers(uuidv4(), username, password);
+    // const newUser = await createUsers(uuidv4(), username, password);
     console.log(newUser);
     console.log(process.env.JWT_SECRET);
     const token = await jwt.sign({username:newUser.username}, process.env.JWT_SECRET);
