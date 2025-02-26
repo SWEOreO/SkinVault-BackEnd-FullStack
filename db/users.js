@@ -75,8 +75,17 @@ const logInUser = async(username, password) => {
 
 
 const existingUserInfo = async(token) => {
-  // if user exist (with a token)
-  // yes, get the user info
+  const userInfo = await jwt.verify(token, process.env.JWT_SECRET);
+  console.log(userInfo);
+  try{
+    const {rows} = await client.query(`
+      SELECT * FROM users WHERE username = $1
+    `,[userInfo.username])
+
+    return rows[0];
+  } catch (err) {
+    console.log(err);
+  }
 }
 
 module.exports = {

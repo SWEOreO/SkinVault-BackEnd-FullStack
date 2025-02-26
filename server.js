@@ -45,15 +45,16 @@ app.post('/api/auth/login',async(req, res, next) => {
 });
 
 
-// // user info
-// app.get('/api/auth/me',async(req, res, next) => {
-//   try{
-//     const user = await existingUserInfo(token);
-//     res.send({user})
-//   } catch(err) {
-//     res.send({message: err.message});
-//   }
-// });
+// user info
+app.get('/api/auth/me',async(req, res, next) => {
+  try{
+    const token = req.headers.authorization;
+    const user = await existingUserInfo(token);
+    res.send(user);
+  } catch(err) {
+    res.send({message: err.message});
+  }
+});
 
 
 // all product info
@@ -113,19 +114,19 @@ app.post('/api/products/:product_id/write-new-reviews', async(req, res, next) =>
   }
 });
 
-// delete existing review for certain product (member only)
-app.delete('/api/reviews/:reviewId', async(req, res, next) => {
-  const {reviewId} = req.params;
-  console.log(reviewId);
-  try{
+// // delete existing review for certain product (member only)
+// app.delete('/api/reviews/:reviewId', async(req, res, next) => {
+//   const {reviewId} = req.params;
+//   console.log(reviewId);
+//   try{
 
-    await deleteReview(reviewId);
+//     await deleteReview(reviewId);
 
-    res.status(204).send({});
-  } catch(err) {
-    next(err);
-  }
-});
+//     res.status(204).send({});
+//   } catch(err) {
+//     next(err);
+//   }
+// });
 
 
 // // check my reviews (members only)
