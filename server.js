@@ -1,4 +1,4 @@
-const {registerUser, logInUser} = require('./db/users.js');
+const {registerUser, logInUser, existingUserInfo} = require('./db/users.js');
 const{fetchAllProducts, fetchProductDetails} = require('./db/products.js');
 const{fetchAllReviews, createReviews, deleteReview, getMyReviews} = require('./db/reviews.js');
 
@@ -45,15 +45,15 @@ app.post('/api/auth/login',async(req, res, next) => {
 });
 
 
-// user info
-app.get('/api/auth/me',async(req, res, next) => {
-  try{
-    const user = await registerUser(req.headers.logInUser);
-    res.send({user})
-  } catch(err) {
-    res.send({message: err.message});
-  }
-});
+// // user info
+// app.get('/api/auth/me',async(req, res, next) => {
+//   try{
+//     const user = await existingUserInfo(token);
+//     res.send({user})
+//   } catch(err) {
+//     res.send({message: err.message});
+//   }
+// });
 
 
 // all product info
@@ -91,18 +91,26 @@ app.get('/api/product/:product_id/reviews', async(req, res, next) => {
 });
 
 // create new reviews for cetain product(member only)
-app.post('/api/products/:productId/write-new-reviews', async(req, res, next) => {
-  const {productId} = req.params;
-  console.log(productId);
-  // console.log(id);
-  const{score,text, user_id, product_id} = req.body;
-
+app.post('/api/products/:product_id/write-new-reviews', async(req, res, next) => {
+  const {product_id} = req.params;
+  console.log(product_id);
+  
   try{
+    const{score,text} = req.body;
+    
+    if (!product_id || !text || !score) {
+      return res.status(400).json({error: "All fields are required!"});
+    }
+
+    const user_id = req.user.id;
     const newReview = await createReviews(score, text, user_id, product_id);
+
+    res.status(201).json({message: "Reveiw created successfullt!!!"}, newReview[0]);
+  
   }catch(err) {
-    next(err);
+    console.log(err);
+    res.status(500).json({error: "Server error"});
   }
-  res.status(201).send(newReview);
 });
 
 // delete existing review for certain product (member only)
@@ -120,17 +128,17 @@ app.delete('/api/reviews/:reviewId', async(req, res, next) => {
 });
 
 
-// check my reviews (members only)
-app.get('/api/review/me', async(req, res, next) => {
-  try{
+// // check my reviews (members only)
+// app.get('/api/review/me', async(req, res, next) => {
+//   try{
 
-    await getMyReviews(user_id);
+//     await getMyReviews(user_id);
 
-    res.status(204).send({});
-  } catch(err) {
-    next(err);
-  }
-});
+//     res.status(204).send({});
+//   } catch(err) {
+//     next(err);
+//   }
+// });
 
 
 const PORT = process.env.PORT || 3000;

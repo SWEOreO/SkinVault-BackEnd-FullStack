@@ -1,11 +1,18 @@
 const client = require('./client.js');
+const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
+const {v4: uuidv4} = require('uuid');
+require('dotenv').config()
 
 const createReviews = async(score,text, user_id, product_id) => {
   try{
-    await client.query(`
+    const {rows} = await client.query(`
       INSERT INTO reviews (score,text, user_id, product_id)
       VALUES ($1,$2,$3,$4)
+      RETURNING *;
     `, [score,text, user_id, product_id]);
+
+    return rows[0];
   } catch(err) {
     console.log(err);
   }
@@ -15,10 +22,10 @@ const createReviews = async(score,text, user_id, product_id) => {
 const deleteReview = async(reviewId, user_id, product_id) => {
   try{
     const {rows} = await client.query(`
-      DELETE FROM reservation 
-      WHERE id = ${reviewId} and user_id = ${user_id} and product_id = ${product_id}
-      RETURNING *`
-      );
+      DELETE FROM reviews 
+      WHERE id = $1 and user_id = $2 and product_id = $3
+      RETURNING *
+      `, [reviewId,user_id,product_id]);
 
       if (rows[0]) {
         return rows[0];
@@ -32,10 +39,10 @@ const deleteReview = async(reviewId, user_id, product_id) => {
 }
 
 
-const fetchAllReviews = async(reviewId, product_id) => {
+const fetchAllReviews = async(product_id) => {
   try {
     const { rows: retrievedReviews } = await client.query(`
-      SELECT * FROM reviews WHERE id = ${reviewId} and customer_id = ${product_id};
+      SELECT * FROM reviews WHERE product_id = ${product_id};
     `);
 
     return retrievedReviews;
