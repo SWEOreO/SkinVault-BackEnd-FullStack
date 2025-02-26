@@ -30,9 +30,9 @@ const registerUser = async(username, password) => {
       throw Error(`User Already Exists!`);
       // console.log(passwordMatch); // Blean
     } else {
-    const bcryptedPassword = await bcrypt.password
-    const newUser = await createUsers(uuidv4(), username, bcryptedPassword);
-    const newUser = await createUsers(uuidv4(), username, password);
+    const encryptedPassword = await bcrypt.hash(password,10);
+    const newUser = await createUsers(uuidv4(), username, encryptedPassword);
+
     console.log(newUser);
     console.log(process.env.JWT_SECRET);
     const token = await jwt.sign({username:newUser.username}, process.env.JWT_SECRET);
@@ -74,8 +74,14 @@ const logInUser = async(username, password) => {
 }
 
 
+const existingUserInfo = async(token) => {
+  // if user exist (with a token)
+  // yes, get the user info
+}
+
 module.exports = {
   createUsers,
   logInUser,
-  registerUser
+  registerUser,
+  existingUserInfo
 }
