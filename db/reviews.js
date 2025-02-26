@@ -19,13 +19,13 @@ const createReviews = async(score,text, user_id, product_id) => {
 }
 
 
-const deleteReview = async(reviewId, user_id, product_id) => {
+const deleteReview = async(reviewId) => {
   try{
     const {rows} = await client.query(`
       DELETE FROM reviews 
-      WHERE id = $1 and user_id = $2 and product_id = $3
+      WHERE id = $1
       RETURNING *
-      `, [reviewId,user_id,product_id]);
+      `, [reviewId]);
 
       if (rows[0]) {
         return rows[0];
@@ -52,11 +52,11 @@ const fetchAllReviews = async(product_id) => {
 }
 
 
-const getMyReviews = async(reviewId, user_id) => {
+const getMyReviews = async(user_id) => {
   try {
     const { rows: retrievedReviews } = await client.query(`
-      SELECT * FROM reviews WHERE id = ${reviewId} and user_id = ${user_id};
-    `);
+      SELECT * FROM reviews WHERE user_id = $1
+    `,[user_id]);
 
     return retrievedReviews;
   } catch(err) {

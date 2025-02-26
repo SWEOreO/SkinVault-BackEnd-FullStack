@@ -4,6 +4,7 @@ const{fetchAllReviews, createReviews, deleteReview, getMyReviews} = require('./d
 
 const express = require('express');
 const app = express();
+const jwt = require('jsonwebtoken');
 
 app.use(express.json());
 app.use(express.static('dist'));
@@ -18,6 +19,22 @@ require('dotenv').config();
 // app.get('/', (req, res, next) => {
 //   res.send(`WELCOME`);
 // });
+
+const verifyToken = async(req,res,next) => {
+  const authHeader = req.headers['authorization'];
+  const token = authHeader.split(' ')[1];
+  jwt.verify(token, process.env.JWT_SECRET,async (err,decoded)=> {
+    if (err) {
+      console.log(err);
+      return res.status(401).send("unauthorized");
+    } 
+    const user = await existingUserInfo(token);
+    decoded.user =user;
+    req.user = decoded; 
+    next();
+  });
+ 
+}
 
 // register
 app.post('/api/auth/register',async(req, res, next) => {
@@ -46,11 +63,12 @@ app.post('/api/auth/login',async(req, res, next) => {
 
 
 // user info
-app.get('/api/auth/me',async(req, res, next) => {
+app.get('/api/auth/me',verifyToken, async(req, res, next) => {
+  console.log(req.user)
   try{
-    const token = req.headers.authorization;
-    const user = await existingUserInfo(token);
-    res.send(user);
+    // const token = req.headers.authorization;
+    // const user = await existingUserInfo(token);
+    res.status(201).send(req.user);
   } catch(err) {
     res.send({message: err.message});
   }
@@ -92,7 +110,7 @@ app.get('/api/product/:product_id/reviews', async(req, res, next) => {
 });
 
 // create new reviews for cetain product(member only)
-app.post('/api/products/:product_id/write-new-reviews', async(req, res, next) => {
+app.post('/api/products/:product_id/write-new-reviews', verifyToken, async(req, res, next) => {
   const {product_id} = req.params;
   console.log(product_id);
   
@@ -103,10 +121,10 @@ app.post('/api/products/:product_id/write-new-reviews', async(req, res, next) =>
       return res.status(400).json({error: "All fields are required!"});
     }
 
-    const user_id = req.user.id;
+    const user_id = req.user.user.id;
     const newReview = await createReviews(score, text, user_id, product_id);
 
-    res.status(201).json({message: "Reveiw created successfullt!!!"}, newReview[0]);
+    res.status(201).json({message: "Reveiw created successfullt!!!", newReview});
   
   }catch(err) {
     console.log(err);
@@ -114,32 +132,40 @@ app.post('/api/products/:product_id/write-new-reviews', async(req, res, next) =>
   }
 });
 
-// // delete existing review for certain product (member only)
-// app.delete('/api/reviews/:reviewId', async(req, res, next) => {
-//   const {reviewId} = req.params;
-//   console.log(reviewId);
-//   try{
+// delete existing review for certain product (member only)
+app.delete('/api/reviews/:reviewId', verifyToken, async(req, res, next) => {
+  const {reviewId} = req.params;
+  console.log("Deleting Review ID:",reviewId);
+  try{
 
-//     await deleteReview(reviewId);
+    const deletedReview = await deleteReview(reviewId);
 
-//     res.status(204).send({});
-//   } catch(err) {
-//     next(err);
-//   }
-// });
+    if (!deletedReview) {
+      return res.status(404).json({error: "Review not found!"});
+    }
+
+    res.status(204).send();
+  } catch(err) {
+    next(err);
+  }
+});
 
 
-// // check my reviews (members only)
-// app.get('/api/review/me', async(req, res, next) => {
-//   try{
+// check my reviews (members only)
+app.get('/api/review/me', verifyToken, async(req, res, next) => {
+  try{
+    const user_id = req.user.user.id;
+    const userReviews = await getMyReviews(user_id);
 
-//     await getMyReviews(user_id);
+    if (userReviews.length === 0) {
+      return res.status(404).json({message:"No reviews found!"});
+    }
 
-//     res.status(204).send({});
-//   } catch(err) {
-//     next(err);
-//   }
-// });
+    res.status(200).json(userReviews);
+  } catch(err) {
+    next(err);
+  }
+});
 
 
 const PORT = process.env.PORT || 3000;
