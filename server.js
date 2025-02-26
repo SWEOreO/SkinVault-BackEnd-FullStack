@@ -81,8 +81,10 @@ app.get('/api/products/:product_id', async(req, res, next) => {
 
 // matched review for certain product
 app.get('/api/product/:product_id/reviews', async(req, res, next) => {
+  const {product_id} = req.params;
   try{
-    const allReviews = await fetchAllReviews();
+    const allReviews = await fetchAllReviews(product_id);
+    res.send(allReviews);
   } catch(err) {
     next(err);
   }
